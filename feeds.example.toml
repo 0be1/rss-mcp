@@ -1,0 +1,18 @@
+# Example configuration for rss-mcp.
+# Copy it to `feeds.toml` and adapt the list.
+
+[settings]
+# HTTP timeout for a single feed request, in seconds.
+timeout_secs = 10
+# Default maximum number of items returned per feed.
+max_items = 20
+
+[[feeds]]
+name = "rust-blog"
+url = "https://blog.rust-lang.org/feed.xml"
+tags = ["rust"]
+
+[[feeds]]
+name = "this-week-in-rust"
+url = "https://this-week-in-rust.org/atom.xml"
+tags = ["rust", "newsletter"]

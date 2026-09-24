@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example RSS</title>
+    <link>https://example.com/</link>
+    <description>An RSS 2.0 fixture</description>
+    <item>
+      <title>First post</title>
+      <link>https://example.com/first</link>
+      <description>Hello from RSS</description>
+      <pubDate>Mon, 01 Sep 2025 10:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Second post</title>
+      <link>https://example.com/second</link>
+    </item>
+  </channel>
+</rss>
