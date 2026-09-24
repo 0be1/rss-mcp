@@ -1,3 +1,4 @@
 /target
 # Local feed list (copy from feeds.example.toml)
 /feeds.toml
+.claude/skills/brent-sentiment-workspace/**

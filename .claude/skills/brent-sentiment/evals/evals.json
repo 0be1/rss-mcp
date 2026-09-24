@@ -1,0 +1,45 @@
+{
+  "skill_name": "brent-sentiment",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Pour chacun des articles de \"oil price\" indique sa date de publication (format ISO 8601) et une valeur de -1 à +1 selon qu'il pousse le Brent à la hausse, à la baisse ou neutre. Présente les résultats dans un tableau.",
+      "expected_output": "Tableau de tous les articles du flux 'oil price', trié du plus récent au plus ancien, avec date ISO 8601, lien, score et raison, suivi de la moyenne et des contradictions éventuelles.",
+      "files": [],
+      "assertions": [
+        "Analyse tous les articles du flux : le tableau a autant de lignes que feed.json contient d'articles",
+        "Chaque date du tableau est au format ISO 8601 et correspond exactement au champ published",
+        "Chaque score est un nombre compris entre -1 et +1",
+        "Chaque titre d'article est un lien Markdown",
+        "Le tableau est trié du plus récent au plus ancien",
+        "La réponse donne la moyenne des scores",
+        "La réponse précise que l'analyse repose sur les résumés du flux"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "les news pétrole du jour c'est plutôt bullish ou bearish pour le brut ?",
+      "expected_output": "Utilise le flux 'oil price' par défaut, produit le tableau de scores et conclut sur le signal global.",
+      "files": [],
+      "assertions": [
+        "Utilise le flux 'oil price' sans que l'utilisateur l'ait nommé",
+        "Analyse tous les articles du flux : le tableau a autant de lignes que feed.json contient d'articles",
+        "Chaque date du tableau est au format ISO 8601 et correspond exactement au champ published",
+        "Chaque score est un nombre compris entre -1 et +1",
+        "La réponse donne la moyenne des scores",
+        "La réponse répond explicitement à la question haussier/baissier"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/brent-sentiment reuters-energy",
+      "expected_output": "Le flux n'existe pas : liste les flux disponibles et s'arrête sans inventer de résultats.",
+      "files": [],
+      "assertions": [
+        "Indique que le flux 'reuters-energy' n'existe pas",
+        "Liste les flux disponibles (dont 'oil price')",
+        "N'invente aucun article ni tableau de scores"
+      ]
+    }
+  ]
+}
