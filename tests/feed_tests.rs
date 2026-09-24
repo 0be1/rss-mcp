@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 use rss_mcp::feed::{FeedClient, FeedError, parse_feed};
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 const RSS2: &[u8] = include_bytes!("fixtures/rss2.xml");
@@ -93,4 +93,64 @@ async fn times_out_on_slow_servers() {
     let err = client.fetch(&server.uri()).await.unwrap_err();
 
     assert!(matches!(err, FeedError::Http(e) if e.is_timeout()));
+}
+
+#[tokio::test]
+async fn identifies_itself_with_a_user_agent() {
+    let server = MockServer::start().await;
+    // Only answers when the expected User-Agent is sent; otherwise wiremock returns 404.
+    Mock::given(method("GET"))
+        .and(header(
+            "user-agent",
+            concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")),
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes(RSS2))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = FeedClient::new(Duration::from_secs(5)).unwrap();
+    let items = client.fetch(&server.uri()).await.unwrap();
+
+    assert_eq!(items.len(), 2);
+}
+
+#[tokio::test]
+async fn reports_parse_errors_for_non_feed_responses() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("<html>Not a feed</html>"))
+        .mount(&server)
+        .await;
+
+    let client = FeedClient::new(Duration::from_secs(5)).unwrap();
+    let err = client.fetch(&server.uri()).await.unwrap_err();
+
+    assert!(matches!(err, FeedError::Parse(_)));
+}
+
+#[tokio::test]
+async fn follows_redirects() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/old.xml"))
+        .respond_with(
+            ResponseTemplate::new(301)
+                .insert_header("location", format!("{}/new.xml", server.uri()).as_str()),
+        )
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/new.xml"))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes(ATOM))
+        .mount(&server)
+        .await;
+
+    let client = FeedClient::new(Duration::from_secs(5)).unwrap();
+    let items = client
+        .fetch(&format!("{}/old.xml", server.uri()))
+        .await
+        .unwrap();
+
+    assert_eq!(items[0].title.as_deref(), Some("Atom entry"));
 }
