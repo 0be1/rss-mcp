@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! Configuration loading from a TOML file.
 //!
 //! The file contains an optional `[settings]` table and a list of `[[feeds]]`.

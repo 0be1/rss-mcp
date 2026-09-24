@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! Tests for the MCP tools exposed by `RssServer`.
 
 use rmcp::handler::server::wrapper::{Json, Parameters};

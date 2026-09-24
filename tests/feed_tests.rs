@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! Tests for feed parsing (local fixtures) and fetching (mock HTTP server).
 
 use std::time::Duration;

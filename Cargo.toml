@@ -2,6 +2,8 @@
 name = "rss-mcp"
 version = "0.1.0"
 edition = "2024"
+description = "An MCP server that reads RSS and Atom feeds listed in a TOML file"
+license = "GPL-3.0-or-later"
 
 [dependencies]
 anyhow = "1.0.104"

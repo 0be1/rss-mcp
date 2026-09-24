@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! Fetching and parsing of RSS/Atom documents.
 //!
 //! This module knows nothing about MCP: it turns a URL (or raw bytes) into a
