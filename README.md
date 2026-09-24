@@ -10,7 +10,7 @@ AI assistant (such as Claude Code) read RSS and Atom feeds listed in a TOML file
 | Tool         | Description                                       | Status  |
 |--------------|---------------------------------------------------|---------|
 | `list_feeds` | List configured feeds (name, URL, tags)           | ✅      |
-| `get_feed`   | Fetch a feed and return its latest items          | planned |
+| `get_feed`   | Fetch a feed and return its latest items          | ✅      |
 | `get_latest` | Merge several feeds (optionally by tag), by date  | planned |
 
 RSS 0.9x/1.0/2.0, Atom and JSON Feed are supported through
@@ -76,7 +76,7 @@ claude mcp add rss --scope user -- /absolute/path/to/rss-mcp/target/release/rss-
 Example prompts:
 
 - "Which RSS feeds are available?"
-- "Summarize the latest posts from rust-blog." *(once `get_feed` exists)*
+- "Summarize the latest 3 posts from rust-blog."
 
 ## Development
 
@@ -104,6 +104,7 @@ src/
 └── server.rs   # MCP tools: thin adapter over config + feed
 tests/
 ├── feed_tests.rs   # parsing fixtures, HTTP via a wiremock server
+├── server_tests.rs # MCP tools of RssServer
 └── fixtures/       # sample RSS 2.0 and Atom documents
 ```
 

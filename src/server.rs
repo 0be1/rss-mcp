@@ -5,13 +5,18 @@
 
 use std::sync::Arc;
 
-use rmcp::handler::server::router::tool::ToolRouter;
-use rmcp::handler::server::wrapper::Json;
-use rmcp::{ServerHandler, tool, tool_handler, tool_router};
+use rmcp::{
+    ServerHandler,
+    handler::server::{
+        router::tool::ToolRouter,
+        wrapper::{Json, Parameters},
+    },
+    tool, tool_handler, tool_router,
+};
 use serde::Serialize;
 
 use crate::config::Config;
-use crate::feed::{FeedClient, FeedError};
+use crate::feed::{FeedClient, FeedError, FeedItem};
 
 /// Public description of a configured feed.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
@@ -21,8 +26,21 @@ pub struct FeedInfo {
     pub tags: Vec<String>,
 }
 
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+/// Parameters of the `get_feed` tool.
+pub struct FeedRequest {
+    /// Feed name, as returned by `list_feeds`.
+    pub name: String,
+    /// Maximum number of items to return (defaults to the server setting).
+    pub limit: Option<usize>,
+}
+
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct FeedResponse {
+    pub items: Vec<FeedItem>,
+}
+
 /// Result of the `list_feeds` tool.
-///
 /// Structured tool output must be a JSON object, hence this wrapper.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 pub struct FeedList {
@@ -32,8 +50,6 @@ pub struct FeedList {
 #[derive(Debug, Clone)]
 pub struct RssServer {
     config: Arc<Config>,
-    // Not used yet: will serve the upcoming `get_feed` tool.
-    #[allow(dead_code)]
     client: FeedClient,
     tool_router: ToolRouter<Self>,
 }
@@ -67,6 +83,35 @@ impl RssServer {
             .collect();
         Json(FeedList { feeds })
     }
+
+    #[tool(
+        description = "Fetch a feed by name and return its most recent items (title, link, publication date, summary). Use list_feeds to discover valid names."
+    )]
+    pub async fn get_feed(
+        &self,
+        Parameters(args): Parameters<FeedRequest>,
+    ) -> Result<Json<FeedResponse>, String> {
+        let Some(feed) = self.config.feed(&args.name) else {
+            return Err(format!(
+                "unknown feed {:?}; call list_feeds to see available names",
+                args.name
+            ));
+        };
+
+        let limit = args.limit.unwrap_or(self.config.settings.max_items);
+
+        let mut items = self.client.fetch(&feed.url).await.map_err(|e| {
+            format!(
+                "cannot read feed {:?}: {:#}",
+                feed.name,
+                anyhow::Error::from(e)
+            )
+        })?;
+
+        items.truncate(limit);
+
+        Ok(Json(FeedResponse { items }))
+    }
 }
 
 #[tool_handler(
@@ -75,29 +120,3 @@ impl RssServer {
     instructions = "Reads RSS and Atom feeds declared in a TOML configuration file. Call `list_feeds` to discover the available feeds."
 )]
 impl ServerHandler for RssServer {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn list_feeds_returns_configured_feeds() {
-        let config: Config = r#"
-            [[feeds]]
-            name = "a"
-            url = "https://example.com/a.xml"
-            tags = ["x"]
-            [[feeds]]
-            name = "b"
-            url = "https://example.com/b.xml"
-        "#
-        .parse()
-        .unwrap();
-
-        let Json(list) = RssServer::new(config).unwrap().list_feeds().await;
-
-        let names: Vec<_> = list.feeds.iter().map(|f| f.name.as_str()).collect();
-        assert_eq!(names, ["a", "b"]);
-        assert_eq!(list.feeds[0].tags, ["x"]);
-    }
-}
