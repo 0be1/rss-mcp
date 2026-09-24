@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! MCP server: exposes the configured feeds as tools.
 //!
 //! This is a thin adapter layer. Business logic lives in [`crate::feed`] and

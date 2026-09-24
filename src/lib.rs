@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! An MCP server that reads RSS and Atom feeds listed in a TOML file.
 //!
 //! The crate is split into a library (this file) and a thin binary
